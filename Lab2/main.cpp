@@ -10,28 +10,31 @@ int Test(int value, int value1, int value2, int value3, int value4, int value5)
 
 int main()
 {  
-  RCC::CR::HSION::On::Set(); 
-  while(!RCC::CR::HSIRDY::Ready::IsSet())
+  RCC::CR::HSEON::On::Set();
+  while(!RCC::CR::HSERDY::Ready::IsSet())
   {
   }
-  RCC::PLLCFGR::PLLM0::Set(8U); // Set VCO 2 MHz == HSE/8 = 16 000 000 / 8
-  RCC::PLLCFGR::PLLN0::Set(64U); // Set VCC Output == 128 Mhz (> 100 Mhz) == VCO * 64 = 2 * 64
-  RCC::PLLCFGR::PLLP0::Pllp4::Set(); //Set PLL Output == 32 Mhz == VCO output / 4 = 128 / 4   
-  
+  RCC::CFGR::SW::Hse::Set();
+
+  while(!RCC::CFGR::SWS::Hse::IsSet())
+  {
+  }
+
+  RCC::CR::HSION::Off::Set();
+  RCC::PLLCFGR::PLLSRC::HseSource::Set();
+  RCC::PLLCFGR::PLLM0::Set(4U); 
+  RCC::PLLCFGR::PLLN0::Set(64U); 
+  RCC::PLLCFGR::PLLP0::Pllp4::Set();  
   RCC::CR::PLLON::On::Set();
-  
+
+
   while(RCC::CR::PLLRDY::Unlocked::IsSet())
   {
   }
-  
-  RCC::CFGR::SW::Pll::Set(); 
+  RCC::CFGR::SW::Pll::Set();
   while(!RCC::CFGR::SWS::Pll::IsSet())
   {
   }
-  
-  //Подать тактирование на порт С
-  //*reinterpret_cast<std::uint32_t*>(0x40023830) = 1U << 2U ; 
-  volatile int t = 0;   
   RCC::AHB1ENR::GPIOCEN::Enable::Set();
   //Настроить PortC.5 на выход. Регистр PortC.MODER5, Адрес см. https://www.st.com/resource/en/datasheet/stm32f411re.pdf  стр 54
   // Описание регистра см https://www.st.com/resource/en/reference_manual/dm00119316-stm32f411xce-advanced-armbased-32bit-mcus-stmicroelectronics.pdf стр. 157
@@ -45,13 +48,13 @@ int main()
   
   for(;;)
   {
-    for (int i= 0; i < 100000000 ; i ++)
+    for (int i= 0; i < 10000000 ; i ++)
     {
     }
     
     GPIOC::ODR::ODR5::High::Set() ;
   
-    for (int i= 0; i < 100000000 ; i ++)
+    for (int i= 0; i < 10000000 ; i ++)
     {
     }
     GPIOC::ODR::ODR5::Low::Set() ;
